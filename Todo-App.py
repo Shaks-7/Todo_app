@@ -1,0 +1,76 @@
+import PySimpleGUI as sg
+import functions
+import time
+import os
+
+if not os.path.exists('list.txt'):
+    with open('list.txt','w') as file:
+        pass
+
+clock = sg.Text('', key='clock')
+text1 = sg.Text('Todo App')
+input1 = sg.Input(tooltip='Enter todo', key='todo')
+add_button = sg.Button('Add', key='Add')
+input2 = sg.Input(tooltip='Select todo', key='edit')
+edit_button = sg.Button('Edit')
+comp_button = sg.Button('Complete')
+exit_button = sg.Button('Exit')
+list1 = sg.Listbox(values=functions.get_todos(), key='listbox', enable_events=True, size=(45, 10))
+layout = [[clock],
+          [text1],
+          [input1, add_button],
+          [list1, edit_button, comp_button],
+          [exit_button]]
+
+window = sg.Window('To-do App', layout=layout, font=('Helvetica',15))
+
+
+while True:
+    event, values = window.read(timeout=200)
+    window['clock'].update(value=time.strftime("%b %d, %Y %H:%M:%S"))
+    print(event)
+    print(values)
+
+    match event:
+        case 'Add':
+            todos = functions.get_todos()
+            todo = values['todo'] + '\n'
+            todos.append(todo)
+            functions.out_todos(todos)
+            window['listbox'].update(values=todos)
+
+        case 'Edit':
+            try:
+                new_todo = values['todo']
+                todo_to_edit = values['listbox'][0]
+                todos = functions.get_todos()
+                index = todos.index(todo_to_edit)
+                todos[index]=new_todo
+                functions.out_todos(todos)
+                window['listbox'].update(values=todos)
+            except IndexError:
+                sg.popup('Please choose any todo', font=('Helvetica', 15))
+        case 'Complete':
+            try:
+                complete = values['listbox'][0]
+                todos = functions.get_todos()
+                todos.remove(complete)
+                functions.out_todos(todos)
+                window['listbox'].update(values=todos)
+            except IndexError:
+                sg.popup('Please choose any todo', font=('Helvetica', 15))
+        case 'listbox':
+            window['todo'].update(value=values['listbox'][0])
+        case 'Exit':
+            break
+
+        case sg.WIN_CLOSED:
+            break
+
+
+
+
+
+
+window.close()
+
